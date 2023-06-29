@@ -38,3 +38,13 @@ const App = () => {
 };
 
 export default App;
+
+
+/*
+
+In this example, the `TimerComponent` is rendered conditionally within the `App` component based on the `showTimer` state variable. Clicking the "Unmount Timer" button will toggle the `showTimer` state, causing the `TimerComponent` to unmount.
+
+When you run the application and click the "Unmount Timer" button, the `TimerComponent` will be unmounted, but the interval will continue running. You can verify this by observing that the timer in the `TimerComponent` keeps incrementing, even though the component is no longer rendered.
+
+By mounting and unmounting the `TimerComponent` in this manner, you can observe firsthand that the interval function persists even after the component is unmounted.
+*/
