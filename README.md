@@ -1,6 +1,6 @@
 # The useEffect Hook
 
-## Why is it called `useEffect`?
+## Why `useEffect`?
 
 When React introduced the core Hooks like `useState`, `useEffect`, and others in 2018, many developers found the name of one particular hook confusing: `useEffect`.
 
@@ -9,6 +9,7 @@ When React introduced the core Hooks like `useState`, `useEffect`, and others in
 The term "effect" refers to a concept in functional programming known as a "side effect."
 
 Before we can understand what a side effect is, let's grasp the concept of a pure function.
+![pure functions](https://res.cloudinary.com/practicaldev/image/fetch/s--rVaJWUod--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/n3ab0kd7kb9br8365op1.png)
 
 Did you know that most React components are actually pure functions?
 
@@ -28,7 +29,7 @@ Here's an example of a `User` component with a `name` prop declared on it. Insid
 
 ```javascript
 export default function App() {
-  return <User name="John Doe" />   
+  return <User name="Alex" />   
 }
   
 function User(props) {
@@ -61,6 +62,8 @@ Some common side effects include:
 - Making API requests to fetch data from a backend server.
 - Interacting with browser APIs (e.g., using `document` or `window` directly).
 - Using timing functions like `setTimeout` or `setInterval`, which have unpredictable behavior.
+
+  ![side effects](https://alexsidorenko.com/static/3af4fc361c972facf838dcb10eb0e851/f058b/side-effect-3.png)
 
 This is where `useEffect` comes into play. Its purpose is to handle the execution of these side effects within otherwise pure React components.
 
@@ -140,18 +143,21 @@ To avoid mistakes with `useEffect`, there are some subtle details to be aware of
 
    This can lead to problems when you're trying to update state within your `useEffect` hook.
 
-2. If you forget to provide the dependencies correctly and you're setting a piece of local state when the state updates, React's default behavior is to re-render the component. This means that, without the dependencies array, `useEffect` will run after every render, causing an infinite loop.
+3. If you forget to provide the dependencies correctly and you're setting a piece of local state when the state updates, React's default behavior is to re-render the component. This means that, without the dependencies array, `useEffect` will run after every render, causing an infinite loop.
 
    ```javascript
    function MyComponent() {
-     const [data, setData] = useState([]);
+     const [joke, setJoke] = useState([]);
        
      useEffect(() => {
-       fetchData().then(myData => setData(myData));
+       fetch(https://api.chucknorris.io/jokes/random).then(myJoke => setJoke(myJoke.value));
        // Error! `useEffect` runs after every render without the dependencies array, causing an infinite loop
      }); 
    }
    ```
+
+      ![infinite loop](https://dmitripavlutin.com/static/7d3875baafc5e00f3bf71fe1b55ac5a5/3e7da/1.png)
+
 
    After the first render, `useEffect` will be run, updating the state, which triggers a re-render, causing `useEffect` to run again, and the cycle repeats indefinitely.
 
@@ -163,16 +169,16 @@ To avoid mistakes with `useEffect`, there are some subtle details to be aware of
 
    ```javascript
    function MyComponent() {
-     const [data, setData] = useState([]);
+     const [joke, setJoke] = useState([]);
        
      useEffect(() => {
-       fetchData().
+       fetch(https://api.chucknorris.io/jokes/random).
 
-then(myData => setData(myData));
+then(myJoke => setJoke(myJoke.value));
        // Correct! Runs once after render with empty array
      }, []); 
      
-     return <ul>{data.map(item => <li key={item}>{item}</li>)}</ul>;
+     return <p>{joke}</p>;
    }
    ```
 
@@ -182,7 +188,7 @@ The final part of properly handling side effects in React is the effect cleanup 
 
 Sometimes, we need to clean up our side effects. For example, if you have a countdown timer using the `setInterval` function, that interval will keep running unless we use the `clearInterval` function to stop it.
 
-Another example is using subscriptions with WebSockets. Subscriptions need to be "turned off" when we no longer need them, and that's where the cleanup function comes in.
+Another example is using an event listener. Event listeners need to be "turned off" when we no longer need them, and that's where the cleanup function comes in.
 
 If we're setting state using `setInterval` and the side effect isn't cleaned up, when our component unmounts, the state is destroyed with the component, but the `setInterval` function will keep running.
 
@@ -199,6 +205,8 @@ function Timer() {
 ```
 
 The problem here is that when the component is unmounting, `setInterval` will try to update a state variable (`time`) that no longer exists. This is an error called a memory leak.
+
+To observe the behavior where the interval continues running even after the component is unmounted, Let's take a look at ![cleanUpFuntion.js](./examples/cleanUpFuntion.js)
 
 To use the cleanup function, we need to return a function from within the `useEffect` function.
 
@@ -231,41 +239,4 @@ Finally, the side effect cleanup is not required in every case. It's only necess
 
 
 
-
-
-
-
-
-
-## Intro
-
-The `useEffect` hook in React is a way to run code after something in our component changes. It's commonly used to handle side effects, such as fetching data from a server or subscribing to events.
-
-When we provide a dependency array to `useEffect`, React will re-run the effect whenever any of the dependencies change. By default, if we don't provide a dependency array, the effect will run after every render of the component.
-
-However, there are scenarios where we want the effect to run only once when the component mounts and not run again for subsequent renders. To achieve this, we can pass an empty array (`[]`) as the dependency array to `useEffect`.
-
-When we update the state of a component, React re-renders the component to show the new state. But sometimes we need to do more than just updating what's shown on the screen. We may need to fetch data from a server, update the browser's address bar, or do other things that happen outside of the normal component rendering process. These extra things are called "side effects."
-
-The `useEffect` hook allows us to handle these side effects. We pass it a function, and React will run that function after the component has rendered and the state has changed. This way, we can keep our component's rendering and side effect logic separate.
-
-For example, if we have a counter component and want to log a message every time the counter changes, we can use `useEffect` like this:
-
-```javascript
-import React, { useState, useEffect } from 'react';
-
-function Counter() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    console.log('Count has changed:', count);
-  }, [count]);
-
-  // Rest of the component logic here
-}
-```
-
-In this example, the `useEffect` hook is used to log a message to the console every time the `count` state changes. The function inside `useEffect` is executed after the component renders and the `count` state has been updated.
-
-By using the `useEffect` hook, we can easily handle side effects in our React components, making it a powerful tool for managing additional behaviors that occur alongside state changes.
 
