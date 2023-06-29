@@ -206,7 +206,7 @@ function Timer() {
 
 The problem here is that when the component is unmounting, `setInterval` will try to update a state variable (`time`) that no longer exists. This is an error called a memory leak.
 
-To observe the behavior where the interval continues running even after the component is unmounted, Let's take a look at ![cleanUpFuntion.js](./examples/cleanUpFuntion.js)
+To observe the behavior where the interval continues running even after the component is unmounted, Let's take a look at [cleanUpFuntion.js](./examples/cleanUpFuntion.js)
 
 To use the cleanup function, we need to return a function from within the `useEffect` function.
 
