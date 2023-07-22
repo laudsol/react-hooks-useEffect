@@ -1,242 +1,209 @@
-# The useEffect Hook
+# The Complete Guide to React `useEffect`
 
-## Why `useEffect`?
+`useEffect` is a powerful hook in React that allows developers to handle side effects in functional components. Side effects include tasks like data fetching, subscriptions, or interacting with the DOM. Understanding how to use `useEffect` effectively is crucial for building reliable and efficient React applications.
 
-When React introduced the core Hooks like `useState`, `useEffect`, and others in 2018, many developers found the name of one particular hook confusing: `useEffect`.
+## Introduction to `useEffect`
 
-**What does "effect" mean?**
+In React functional components, we don't have access to lifecycle methods like in class components. Instead, we use hooks to manage component behavior. `useEffect` is one such hook that enables us to perform side effects after the component has rendered or when it updates.
 
-The term "effect" refers to a concept in functional programming known as a "side effect."
+The `useEffect` hook takes two arguments: a callback function and an optional dependency array. The callback function contains the logic for the side effect, while the dependency array helps control when the effect should run.
 
-Before we can understand what a side effect is, let's grasp the concept of a pure function.
-![pure functions](https://res.cloudinary.com/practicaldev/image/fetch/s--rVaJWUod--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/n3ab0kd7kb9br8365op1.png)
+### Code Example
 
-Did you know that most React components are actually pure functions?
+Let's take a simple example where we log a message to the console whenever the component renders or updates:
 
-It might sound strange to think of React components as functions, but they are.
+```jsx
+import React, { useEffect } from 'react';
 
-To understand this better, let's take a look at a regular React function component defined in JavaScript:
-
-```javascript
-function MyReactComponent() {}
-```
-
-Most React components are pure functions, which means they take an input and produce a predictable output in the form of JSX.
-
-In JavaScript functions, the input is provided through arguments. But what about React components? Well, they use something called "props" as their input!
-
-Here's an example of a `User` component with a `name` prop declared on it. Inside the `User` component, the value of the prop is displayed within a header element.
-
-```javascript
-export default function App() {
-  return <User name="Alex" />   
-}
-  
-function User(props) {
-  return <h1>{props.name}</h1>; // John Doe
-}
-```
-
-This component is pure because it always produces the same output when given the same input.
-
-If we pass the `User` component a `name` prop with the value "John Doe," the output will always be "John Doe."
-
-Now you might be wondering, "So what's the big deal? Why does this need a specific name?"
-
-Well, pure functions have some great benefits: they are predictable, reliable, and easy to test.
-
-But things get a bit different when we need to perform a side effect in our component.
-
-**What are side effects in React?**
-
-Side effects are actions that interact with the "outside world" and are not predictable.
-
-We perform side effects when we need to reach beyond our React components and do something external. However, performing a side effect does not guarantee a predictable result.
-
-Let's say we want to request data (like blog posts) from a server. If the server fails and instead of returning the expected post data, it responds with a 500 status code, that's an example of an unpredictable side effect.
-
-Almost all applications rely on side effects in one way or another, except for the simplest ones.
-
-Some common side effects include:
-
-- Making API requests to fetch data from a backend server.
-- Interacting with browser APIs (e.g., using `document` or `window` directly).
-- Using timing functions like `setTimeout` or `setInterval`, which have unpredictable behavior.
-
-  ![side effects](https://alexsidorenko.com/static/3af4fc361c972facf838dcb10eb0e851/f058b/side-effect-3.png)
-
-This is where `useEffect` comes into play. Its purpose is to handle the execution of these side effects within otherwise pure React components.
-
-For example, let's say we want to change the `<title>` meta tag to display the user's name in their browser tab. We could do it directly within the component, but that's not recommended.
-
-```javascript
-function User({ name }) {
-  document.title = name; 
-  // This is a side effect. Don't do this in the component body!
-    
-  return <h1>{name}</h1>;   
-}
-```
-
-Performing a side effect directly within the component body interferes with the rendering process of our React component.
-
-Side effects should be separate from the rendering process. If we need to perform a side effect, it should be done strictly after our component has rendered.
-
-And that's precisely what `useEffect` enables us to do.
-
-In short, `
-
-useEffect` is a tool that allows us to interact with the outside world without affecting the rendering or performance of the component it's used in.
-
-## How do I use `useEffect`?
-
-The basic syntax of `useEffect` is as follows:
-
-```javascript
-// 1. Import useEffect
-import { useEffect } from 'react';
-
-function MyComponent() {
-  // 2. Call it above the returned JSX
-  // 3. Pass two arguments to it: a function and an array
-  useEffect(() => {}, []);
-  
-  // ...rest of the component
-}
-```
-
-Now let's correct the way we perform the side effect in our `User` component:
-
-1. Import `useEffect` from `"react"`.
-2. Call `useEffect` above the returned JSX in our component.
-3. Pass two arguments to `useEffect`: a function and an array.
-
-```javascript
-import { useEffect } from 'react';
-
-function User({ name }) {
+const MyComponent = () => {
   useEffect(() => {
-    document.title = name;
-  }, [name]);
-    
-  return <h1>{name}</h1>;   
-}
-```
-
-The function passed to `useEffect` is a callback function that will be called after the component has rendered.
-
-Within this function, we can perform our side effects or multiple side effects if needed.
-
-The second argument is an array, often called the "dependencies" array. It should include all the values that our side effect relies on.
-
-In our example above, since we're changing the title based on a value from the outer scope (`name`), we need to include it in the dependencies array.
-
-This array serves a purpose: it checks if a value (in this case, `name`) has changed between renders. If it has, the `useEffect` function will be executed again.
-
-This makes sense because if the `name` changes, we want to display the updated name and re-run our side effect.
-
-## How to avoid common mistakes with `useEffect`
-
-To avoid mistakes with `useEffect`, there are some subtle details to be aware of:
-
-1. If you don't provide the dependencies array at all and only provide a function to `useEffect`, it will run after every render.
-
-   This can lead to problems when you're trying to update state within your `useEffect` hook.
-
-3. If you forget to provide the dependencies correctly and you're setting a piece of local state when the state updates, React's default behavior is to re-render the component. This means that, without the dependencies array, `useEffect` will run after every render, causing an infinite loop.
-
-   ```javascript
-   function MyComponent() {
-     const [joke, setJoke] = useState([]);
-       
-     useEffect(() => {
-       fetch(https://api.chucknorris.io/jokes/random).then(myJoke => setJoke(myJoke.value));
-       // Error! `useEffect` runs after every render without the dependencies array, causing an infinite loop
-     }); 
-   }
-   ```
-
-      ![infinite loop](https://dmitripavlutin.com/static/7d3875baafc5e00f3bf71fe1b55ac5a5/3e7da/1.png)
-
-
-   After the first render, `useEffect` will be run, updating the state, which triggers a re-render, causing `useEffect` to run again, and the cycle repeats indefinitely.
-
-   This is called an infinite loop and effectively breaks our application.
-
-   If you're updating state within `useEffect`, make sure to provide an empty dependencies array. By default, it's recommended to use an empty array whenever you use `useEffect`. This will cause the effect function to run only once after the component has rendered for the first time.
-
-   A common example is fetching data. You might want to fetch data only once, store it in state, and display it in your JSX.
-
-   ```javascript
-   function MyComponent() {
-     const [joke, setJoke] = useState([]);
-       
-     useEffect(() => {
-       fetch(https://api.chucknorris.io/jokes/random).
-
-then(myJoke => setJoke(myJoke.value));
-       // Correct! Runs once after render with empty array
-     }, []); 
-     
-     return <p>{joke}</p>;
-   }
-   ```
-
-## What is the cleanup function in `useEffect`?
-
-The final part of properly handling side effects in React is the effect cleanup function.
-
-Sometimes, we need to clean up our side effects. For example, if you have a countdown timer using the `setInterval` function, that interval will keep running unless we use the `clearInterval` function to stop it.
-
-Another example is using an event listener. Event listeners need to be "turned off" when we no longer need them, and that's where the cleanup function comes in.
-
-If we're setting state using `setInterval` and the side effect isn't cleaned up, when our component unmounts, the state is destroyed with the component, but the `setInterval` function will keep running.
-
-```javascript
-function Timer() {
-  const [time, setTime] = useState(0);
-    
-  useEffect(() => {
-    setInterval(() => setTime(1), 1000); 
-    // Counts up 1 every second
-    // We need to stop using setInterval when the component unmounts
+    console.log('Component rendered or updated.');
   }, []);
-}
+
+  return <div>My Component</div>;
+};
 ```
 
-The problem here is that when the component is unmounting, `setInterval` will try to update a state variable (`time`) that no longer exists. This is an error called a memory leak.
+In this example, we passed an empty dependency array `[]`, which means the effect will run only once after the initial render, similar to `componentDidMount` in class components.
 
-To observe the behavior where the interval continues running even after the component is unmounted, Let's take a look at [cleanUpFunction.js](./examples/cleanUpFunction.js)
+### Exercise 1
 
-To use the cleanup function, we need to return a function from within the `useEffect` function.
+Modify the code example above to show an alert message instead of logging to the console whenever the component renders or updates.
 
-Inside this function, we can perform our cleanup, such as using `clearInterval` to stop the `setInterval`.
+# Understanding the Dependency Array
 
-```javascript
-function Timer() {
-  const [time, setTime] = useState(0);
-    
+The dependency array in `useEffect` is a vital aspect that allows us to control when the effect should run. It's the second argument passed to the `useEffect` hook, and it's an array containing variables (dependencies) that the effect depends on.
+
+## Empty Dependency Array `[]`
+
+When the dependency array is empty, i.e., `[]`, the effect will run only once after the initial render of the component. It behaves like the `componentDidMount` lifecycle method in class components. This is useful when you want to perform an action only when the component first mounts and not when any specific state or prop changes.
+
+```jsx
+useEffect(() => {
+  // This effect runs only once after the initial render
+}, []);
+```
+
+## Array with Dependencies
+
+When you provide a dependency array with one or more variables, the effect will run whenever any of the listed dependencies change. It behaves like the `componentDidUpdate` lifecycle method in class components.
+
+```jsx
+useEffect(() => {
+  // This effect runs whenever any of the dependencies change
+}, [dependency1, dependency2]);
+```
+
+If any of the dependencies have changed since the last render, the effect will run again. This allows you to control the effect's behavior based on specific state or prop changes.
+
+## No Dependency Array
+
+If you omit the dependency array altogether, the effect will run after every render of the component, including the initial render. This can lead to an infinite loop if the effect updates the state that triggers a re-render, causing the effect to run again and again.
+
+```jsx
+useEffect(() => {
+  // This effect runs after every render, including the initial render
+});
+```
+
+To avoid an infinite loop, always specify the correct dependencies in the dependency array. This ensures that the effect runs only when those dependencies change, preventing unnecessary re-renders.
+
+## Using the Dependency Array Wisely
+
+Using the dependency array wisely is crucial for optimizing the performance of your React components. If you include unnecessary dependencies or leave out essential ones, it can lead to incorrect behavior or performance issues.
+
+- **Include All Required Dependencies:** Make sure to include all variables that the effect depends on. If you use any variable inside the effect but forget to add it to the dependency array, the effect will not update when that variable changes, leading to stale data or incorrect behavior.
+
+- **Avoid Unnecessary Dependencies:** On the other hand, avoid adding dependencies that do not affect the behavior of the effect. Unnecessary dependencies can cause the effect to run more frequently than needed, affecting performance.
+
+- **Use Multiple `useEffect` Hooks:** If you have multiple unrelated side effects, it's better to split them into separate `useEffect` hooks, each with its own specific dependency array. This improves code readability and ensures that each effect runs only when its relevant dependencies change.
+
+```jsx
+useEffect(() => {
+  // Effect 1 with its dependencies
+}, [dependency1]);
+
+useEffect(() => {
+  // Effect 2 with its dependencies
+}, [dependency2]);
+```
+
+## Exercise 2
+
+In the code example from the previous section, modify the dependency array to include another variable, for example, `step`. Observe how the effect behaves when either `count` or `step` changes. Try different values for `step` and see how it affects the behavior of the effect.
+
+## Cleaning Up with `useEffect`
+
+In some situations, it's necessary to clean up resources or subscriptions when the component unmounts or before the effect runs again. `useEffect` allows us to return a cleanup function from the effect callback.
+
+### Code Example 3
+
+Let's see how to clean up a subscription when the component unmounts. In this example, we create a simple timer that increments every second:
+
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const Timer = () => {
+  const [seconds, setSeconds] = useState(0);
+
   useEffect(() => {
-    let interval = setInterval(() => setTime(1), 1000); 
+    const intervalId = setInterval(() => {
+      setSeconds((prevSeconds) => prevSeconds + 1);
+    }, 1000);
 
     return () => {
-      // `setInterval` cleared when the component unmounts
-      clearInterval(interval);
-    }
+      clearInterval(intervalId);
+      console.log('Timer cleanup.');
+    };
   }, []);
-}
+
+  return (
+    <div>
+      <p>Seconds: {seconds}</p>
+    </div>
+  );
+};
 ```
 
-The cleanup function will be called when the component is unmounted.
+When the component unmounts, the cleanup function inside `useEffect` is executed, clearing the interval and preventing any memory leaks.
 
-A common scenario where a component is unmounted is when we navigate to a new page or a new route in our application where the component is no longer rendered.
+### Exercise 3
 
-When a component is unmounted, our cleanup function runs, the interval is cleared, and we no longer get an error when attempting to update a state variable that doesn't exist.
+Modify the code example above to display a message when the component unmounts, in addition to the timer cleanup.
 
-Finally, the side effect cleanup is not required in every case. It's only necessary in a few cases, such as when you need to stop a repeated side effect when your component unmounts.
+## Conditional `useEffect`
 
+In certain scenarios, you may want to run the effect based on certain conditions. For this, you can use conditional rendering inside the effect callback.
 
+### Code Example 4
 
+In this example, we only want to fetch data when a user is logged in:
 
+```jsx
+import React, { useState, useEffect } from 'react';
 
+const Dashboard = () => {
+  const [data, setData] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      // Simulate fetching data from an API
+      setTimeout(() => {
+        setData('Data fetched successfully!');
+      }, 2000);
+    }
+  }, [isLoggedIn]);
+
+  return (
+    <div>
+      {isLoggedIn ? (
+        <div>
+          <h1>Welcome to the Dashboard</h1>
+          <p>{data ? data : 'Loading...'}</p>
+        </div>
+      ) : (
+        <button onClick={() => setIsLoggedIn(true)}>Login</button>
+      )}
+    </div>
+  );
+};
+```
+
+In this case, the effect runs whenever the `isLoggedIn` state changes, and the data is fetched only when the user is logged in.
+
+### Exercise 4
+
+Modify the code example above to implement a "Logout" button that sets the `isLoggedIn` state to `false`. Observe how the effect behaves when the user logs out.
+
+## Infinite Loop in `useEffect`
+
+One common mistake with `useEffect` is accidentally creating an infinite loop by modifying the state inside the effect without specifying any dependencies. This results in the effect running continuously, leading to poor performance and possible crashes.
+
+Here's an example of how an infinite loop can occur:
+
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const InfiniteLoopExample = () => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setCount(count + 1); // This triggers the effect continuously
+  });
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+    </div>
+  );
+};
+```
+
+In this example, the effect modifies the `count` state without specifying any dependencies in the dependency array. As a result, the effect keeps running, continuously updating the `count` state, and causing an infinite loop.
+
+To avoid this, make sure to include the correct dependencies in the dependency array or leave it empty if the effect should only run once after the initial render.
+
+## Conclusion
+
+React `useEffect` is a powerful tool for managing side effects in functional components. By understanding how to use the dependency array and cleanup function properly, you can ensure your components are efficient and free from potential issues like infinite loops. Remember to always follow the best practices when working with `useEffect` to build robust and performant React applications.
